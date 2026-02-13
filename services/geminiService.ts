@@ -1,9 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { Language } from "../types";
 
-// NOTE: In a real app, API key should be proxy-ed or handled securely.
-// For this demo, we assume process.env.API_KEY is available.
-
 const getAIClient = () => {
   if (!process.env.API_KEY) {
     console.warn("Gemini API Key is missing");
@@ -31,35 +28,35 @@ export const generateAgriAdvice = async (
       [Language.URDU]: 'Urdu'
     }[language];
 
-    const systemPrompt = `You are 'Kisan Mitra' (Farmer's Friend), an expert AI agricultural scientist dedicated to empowering Indian farmers.
-
-    INSTRUCTIONS:
-    1. **Identity**: Act as a wise, practical, and empathetic expert.
-    2. **Language**: Respond ONLY in ${langName}.
-    3. **Formatting**: Strictly use **bold text** for critical numbers, crop names, medicine names, prices, or warnings.
-    4. **Intelligence**: 
-       - Provide specific, actionable advice (e.g., exact fertilizer dosage, specific pesticide names).
-       - Suggest both chemical and organic/natural alternatives.
-       - Include cost-saving tips where possible.
-       - Mention specific Indian market contexts if relevant (e.g., MSP, seasonal trends).
-    5. **Length**: Keep answers concise (60-100 words) but densely informative. Avoid fluff.
+    const systemPrompt = `You are 'Kisan Mitra' (Farmer's Friend), a world-class AI agricultural scientist and economic advisor. 
     
-    If the user greets you, welcome them warmly as a family member (e.g., "Ram Ram", "Namaste").
-    If the user asks about prices, provide realistic current estimates in ₹ (INR).`;
+    CRITICAL PROTOCOLS:
+    1. **Expert Identity**: Provide highly technical yet accessible farming advice. Use a tone of a trusted, wise elder.
+    2. **Language Output**: You MUST respond ONLY in ${langName}.
+    3. **Actionable Intelligence**: 
+       - If asked about pests, suggest specific active ingredients (e.g., "Imidacloprid") and their organic alternatives (e.g., "Neem Oil concentrate").
+       - Provide precise dosages per hectare.
+       - Include weather-specific warnings if applicable.
+    4. **Formatting**: 
+       - Use **bold text** for ALL key terms (chemicals, crop names, quantities, currency values).
+       - Use bullet points for clarity.
+    5. **Financial Awareness**: Mention estimated market prices in ₹ (INR) and suggest cost-reduction strategies.
+    6. **Constraints**: Keep responses between 80-120 words. No unnecessary introductory fluff.`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3-pro-preview",
       contents: prompt,
       config: {
         systemInstruction: systemPrompt,
-        temperature: 0.7,
+        temperature: 0.6,
+        topP: 0.9,
       }
     });
 
-    return response.text || "Sorry, I could not generate advice at this moment.";
+    return response.text || "I apologize, but I couldn't process that. Please try rephrasing your farming query.";
   } catch (error) {
     console.error("Gemini API Error:", error);
-    return "Error connecting to AI assistant. Please try again.";
+    return "The assistant is currently resting. Please check your connection or try again in a moment.";
   }
 };
 
@@ -72,7 +69,7 @@ export const translateText = async (text: string, targetLang: Language): Promise
     try {
         const response = await ai.models.generateContent({
             model: "gemini-3-flash-preview",
-            contents: `Translate the following text to ${targetLang}. Only return the translated text: "${text}"`,
+            contents: `Translate to ${targetLang}. Only return translated text: "${text}"`,
         });
         return response.text || text;
     } catch (e) {

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ChatMessage, Language } from '../types';
 import { generateAgriAdvice } from '../services/geminiService';
 import { TRANSLATIONS } from '../constants';
-import { Mic, Send, Volume2, User, Bot } from 'lucide-react';
+import { Mic, Send, Volume2, User, Bot, Sparkles } from 'lucide-react';
 
 interface Props {
   language: Language;
@@ -24,12 +24,10 @@ const VoiceChat: React.FC<Props> = ({ language }) => {
 
   const t = TRANSLATIONS[language];
 
-  // Auto-scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Voice Input Setup
   const startListening = () => {
     if (!('webkitSpeechRecognition' in window)) {
       alert("Voice input not supported in this browser.");
@@ -38,7 +36,6 @@ const VoiceChat: React.FC<Props> = ({ language }) => {
     const SpeechRecognition = (window as any).webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
     
-    // Map internal language enum to BCP 47 tags
     const langMap = {
       [Language.ENGLISH]: 'en-IN',
       [Language.HINDI]: 'hi-IN',
@@ -73,12 +70,11 @@ const VoiceChat: React.FC<Props> = ({ language }) => {
   const speakText = (text: string) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
-      // Strip markdown ** for speech
       const cleanText = text.replace(/\*\*/g, '');
       const utterance = new SpeechSynthesisUtterance(cleanText);
-      // Try to match language
-      // Note: Browser support for Indian languages varies
       utterance.lang = language === 'en' ? 'en-IN' : language + '-IN'; 
+      utterance.rate = 0.9;
+      utterance.pitch = 1.0;
       window.speechSynthesis.speak(utterance);
     }
   };
@@ -98,7 +94,6 @@ const VoiceChat: React.FC<Props> = ({ language }) => {
     setInput('');
     setIsLoading(true);
 
-    // Call Gemini
     const responseText = await generateAgriAdvice(textToSend, language);
     
     const newBotMsg: ChatMessage = {
@@ -111,83 +106,102 @@ const VoiceChat: React.FC<Props> = ({ language }) => {
     setMessages(prev => [...prev, newBotMsg]);
     setIsLoading(false);
     
-    // Auto-speak response if the user used voice (indicated by textOverride being present)
     if (textOverride) {
       speakText(responseText);
     }
   };
 
-  // Helper to render bold text
   const renderMessageText = (text: string) => {
-    // Split by **text**
     const parts = text.split(/(\*\*.*?\*\*)/g);
     return parts.map((part, index) => {
       if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={index} className="font-bold text-agri-900">{part.slice(2, -2)}</strong>;
+        return <strong key={index} className="font-bold text-agri-950 dark:text-agri-100 underline decoration-agri-200 dark:decoration-agri-600 decoration-2 underline-offset-2">{part.slice(2, -2)}</strong>;
       }
       return <span key={index}>{part}</span>;
     });
   };
 
   return (
-    <div className="flex flex-col h-[600px] bg-gray-50 rounded-xl overflow-hidden shadow-xl border border-gray-200">
-      <div className="bg-agri-600 p-4 text-white flex justify-between items-center shadow-md">
-        <h3 className="font-bold text-lg flex items-center gap-2">
-          <Bot size={24} /> Kisan Mitra AI
-        </h3>
-        <span className="text-xs bg-agri-700 px-2 py-1 rounded">Online</span>
+    <div className="flex flex-col h-[650px] bg-white dark:bg-agri-900 rounded-3xl overflow-hidden shadow-2xl border border-gray-100 dark:border-agri-800 transition-colors">
+      {/* Header */}
+      <div className="bg-agri-600 dark:bg-agri-700 px-6 py-5 text-white flex justify-between items-center shadow-lg relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl" />
+        <div className="flex items-center gap-4 relative z-10">
+          <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/30">
+            <Bot size={24} className="text-white" />
+          </div>
+          <div>
+            <h3 className="font-black text-lg tracking-tight">Kisan Mitra AI</h3>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+              <span className="text-[10px] font-bold uppercase tracking-widest text-agri-100">AI Scientist Active</span>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white/10 p-2 rounded-xl border border-white/20">
+          <Sparkles size={18} />
+        </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[url('https://www.transparenttextures.com/patterns/graphy.png')]">
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50/50 dark:bg-agri-950/30 scroll-smooth no-scrollbar">
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
           >
-            <div
-              className={`max-w-[80%] rounded-2xl p-3 shadow-sm relative group ${
-                msg.role === 'user'
-                  ? 'bg-agri-600 text-white rounded-tr-none'
-                  : 'bg-white text-gray-800 rounded-tl-none border border-gray-100'
-              }`}
-            >
-              <div className="text-sm md:text-base leading-relaxed">
-                {renderMessageText(msg.text)}
+            <div className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} max-w-[85%]`}>
+              <div
+                className={`px-5 py-4 rounded-3xl shadow-sm relative group transition-all duration-300 ${
+                  msg.role === 'user'
+                    ? 'bg-agri-600 text-white rounded-tr-none'
+                    : 'bg-white dark:bg-agri-800 text-gray-800 dark:text-gray-200 rounded-tl-none border border-gray-100 dark:border-agri-700'
+                }`}
+              >
+                <div className="text-sm md:text-base leading-relaxed whitespace-pre-wrap">
+                  {renderMessageText(msg.text)}
+                </div>
+                
+                {msg.role === 'model' && (
+                  <button 
+                    onClick={() => speakText(msg.text)}
+                    className="absolute -right-10 bottom-0 p-2 text-gray-400 dark:text-gray-500 hover:text-agri-600 dark:hover:text-agri-400 hover:bg-agri-50 dark:hover:bg-agri-800 rounded-full transition-all"
+                    title="Listen to Advice"
+                  >
+                    <Volume2 size={20} />
+                  </button>
+                )}
               </div>
-              {msg.role === 'model' && (
-                <button 
-                  onClick={() => speakText(msg.text)}
-                  className="absolute -right-8 top-1 text-gray-400 hover:text-agri-600 opacity-0 group-hover:opacity-100 transition-opacity"
-                  title="Read Aloud"
-                >
-                  <Volume2 size={18} />
-                </button>
-              )}
+              <span className="text-[9px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-tighter mt-1 px-1">
+                {msg.role === 'user' ? 'You' : 'Mitra'} • {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </span>
             </div>
           </div>
         ))}
         {isLoading && (
-          <div className="flex justify-start">
-            <div className="bg-white p-3 rounded-2xl rounded-tl-none border border-gray-100 shadow-sm flex items-center gap-2">
-              <div className="w-2 h-2 bg-agri-500 rounded-full animate-bounce" />
-              <div className="w-2 h-2 bg-agri-500 rounded-full animate-bounce delay-75" />
-              <div className="w-2 h-2 bg-agri-500 rounded-full animate-bounce delay-150" />
+          <div className="flex justify-start animate-pulse">
+            <div className="bg-white dark:bg-agri-800 px-5 py-4 rounded-3xl rounded-tl-none border border-gray-100 dark:border-agri-700 shadow-sm flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 bg-agri-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
+              <div className="w-1.5 h-1.5 bg-agri-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
+              <div className="w-1.5 h-1.5 bg-agri-600 rounded-full animate-bounce" />
             </div>
           </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-3 bg-white border-t border-gray-200">
-        <div className="flex items-center gap-2">
+      {/* Input Area */}
+      <div className="p-4 bg-white dark:bg-agri-900 border-t border-gray-100 dark:border-agri-800 transition-colors">
+        <div className="flex items-center gap-3 bg-gray-100 dark:bg-agri-800 p-2 rounded-[2rem] border border-gray-200 dark:border-agri-700 transition-colors">
           <button
             onClick={startListening}
-            className={`p-3 rounded-full transition-all ${
-              isListening ? 'bg-red-500 animate-pulse text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
+              isListening 
+                ? 'bg-red-500 ring-4 ring-red-100 text-white animate-pulse' 
+                : 'bg-white dark:bg-agri-700 text-agri-600 dark:text-agri-400 hover:text-agri-700 shadow-sm border border-gray-100 dark:border-agri-600'
             }`}
-            title={t.speak}
           >
-            <Mic size={24} />
+            <Mic size={24} strokeWidth={2.5} />
           </button>
           
           <input
@@ -195,16 +209,20 @@ const VoiceChat: React.FC<Props> = ({ language }) => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder={isListening ? t.listening : "Type or speak..."}
-            className="flex-1 border border-gray-300 rounded-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-agri-500"
+            placeholder={isListening ? t.listening : "Ask about crops, pests, or market prices..."}
+            className="flex-1 bg-transparent border-none focus:outline-none focus:ring-0 text-gray-800 dark:text-white font-medium placeholder:text-gray-400 py-2"
           />
           
           <button
             onClick={() => handleSend()}
             disabled={!input.trim() && !isLoading}
-            className="p-3 bg-agri-600 text-white rounded-full hover:bg-agri-700 disabled:opacity-50 transition-colors"
+            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-md ${
+              input.trim() 
+                ? 'bg-agri-600 dark:bg-agri-500 text-white hover:bg-agri-700 dark:hover:bg-agri-600 hover:shadow-lg' 
+                : 'bg-gray-200 dark:bg-agri-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+            }`}
           >
-            <Send size={24} />
+            <Send size={20} strokeWidth={2.5} />
           </button>
         </div>
       </div>

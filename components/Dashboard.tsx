@@ -28,7 +28,7 @@ const Dashboard: React.FC<Props> = ({ language }) => {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       
       {/* WEATHER CARD */}
-      <div className="lg:col-span-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl text-white shadow-lg overflow-hidden relative">
+      <div className="lg:col-span-2 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-700 dark:to-blue-900 rounded-xl text-white shadow-lg overflow-hidden relative">
         <div className="absolute top-0 right-0 p-4 opacity-20">
           <CloudRain size={120} />
         </div>
@@ -78,27 +78,27 @@ const Dashboard: React.FC<Props> = ({ language }) => {
       </div>
 
       {/* RISK ALERTS */}
-      <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6">
-        <h3 className="text-gray-800 font-bold text-lg mb-4 flex items-center gap-2">
+      <div className="bg-white dark:bg-agri-900 rounded-xl shadow-md border border-gray-100 dark:border-agri-800 p-6">
+        <h3 className="text-gray-800 dark:text-white font-bold text-lg mb-4 flex items-center gap-2">
           <AlertTriangle className="text-orange-500" /> {t.risk}
         </h3>
         <div className="space-y-3">
           {alerts.map((alert, idx) => (
             <div key={idx} className={`p-3 rounded-lg border-l-4 ${
-              alert.level === 'High' ? 'bg-red-50 border-red-500' :
-              alert.level === 'Medium' ? 'bg-orange-50 border-orange-500' :
-              'bg-green-50 border-green-500'
+              alert.level === 'High' ? 'bg-red-50 dark:bg-red-950/20 border-red-500' :
+              alert.level === 'Medium' ? 'bg-orange-50 dark:bg-orange-950/20 border-orange-500' :
+              'bg-green-50 dark:bg-green-950/20 border-green-500'
             }`}>
               <div className="flex justify-between">
                 <span className={`text-xs font-bold uppercase ${
-                   alert.level === 'High' ? 'text-red-700' :
-                   alert.level === 'Medium' ? 'text-orange-700' :
-                   'text-green-700'
+                   alert.level === 'High' ? 'text-red-700 dark:text-red-400' :
+                   alert.level === 'Medium' ? 'text-orange-700 dark:text-orange-400' :
+                   'text-green-700 dark:text-green-400'
                 }`}>{alert.type} Risk</span>
-                <span className="text-xs text-gray-500">{alert.level}</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">{alert.level}</span>
               </div>
-              <p className="text-sm font-medium text-gray-800 mt-1">{alert.message}</p>
-              <p className="text-xs text-gray-600 mt-1">💡 {alert.action}</p>
+              <p className="text-sm font-medium text-gray-800 dark:text-gray-200 mt-1">{alert.message}</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">💡 {alert.action}</p>
             </div>
           ))}
         </div>

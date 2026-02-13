@@ -13,10 +13,10 @@ const LanguageSelector: React.FC<Props> = ({ currentLang, onLanguageChange }) =>
         <button
           key={lang}
           onClick={() => onLanguageChange(lang)}
-          className={`px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+          className={`px-4 py-1.5 rounded-full text-sm font-black whitespace-nowrap transition-all ${
             currentLang === lang
-              ? 'bg-agri-600 text-white shadow-md'
-              : 'bg-white text-agri-800 border border-agri-200 hover:bg-agri-50'
+              ? 'bg-agri-600 text-white shadow-md shadow-agri-200 dark:shadow-agri-950'
+              : 'bg-white dark:bg-agri-800 text-agri-800 dark:text-agri-300 border border-agri-200 dark:border-agri-700 hover:bg-agri-50 dark:hover:bg-agri-700'
           }`}
         >
           {lang.toUpperCase()}
